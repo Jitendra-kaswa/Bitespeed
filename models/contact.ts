@@ -62,29 +62,64 @@ export class ContactModel implements IContactModel{
     });
   }
 
-  findOneContactByEmailOrPhoneNumber(email: string, phoneNumber: string): Promise<ContactAttributes | null> {
+  findContactByEmailOrPhoneNumber(email: string| null, phoneNumber: string | null): Promise<ContactAttributes[]> {
     return new Promise((resolve, reject) => {
-      const query = `SELECT * FROM contacts WHERE email = ? OR phoneNumber = ?`;
-
-      this.db.get(query, [email, phoneNumber], (err, row) => {
-        if (err) {
-          reject(err);
+        var query: string = "";
+        var queryParams: any[] = [];
+        if (phoneNumber == null) {
+          query = `SELECT * FROM contacts WHERE email = ?`;
+          queryParams = [email];
+        } else if (email == null) {
+          query = `SELECT * FROM contacts WHERE phoneNumber = ?`;
+          queryParams = [phoneNumber];
         } else {
-            resolve(row ? (row as ContactAttributes) : null);
+          query = `SELECT * FROM contacts WHERE email = ? OR phoneNumber = ?`;
+          queryParams = [email, phoneNumber];
         }
-      });
+        this.db.all(query, queryParams, (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row !=undefined ? (row as ContactAttributes[]) : []);
+          }
+        });
     });
   }
 
   findAllContactsByLinkedId(linkedId: number): Promise<ContactAttributes[]> {
     return new Promise((resolve, reject) => {
-      const query = ` SELECT * FROM contacts WHERE linkedId = ?`;
+      const query = ` SELECT * FROM contacts WHERE linkedId = ? OR id = ?`;
 
-      this.db.all(query, [linkedId], (err, rows) => {
+      this.db.all(query, [linkedId,linkedId], (err, rows) => {
         if (err) {
           reject(err);
         } else {
           resolve(rows ? rows as ContactAttributes[]: []);
+        }
+      });
+    });
+  }
+
+  updateContact(id: number, linkedId: number, linkedPreference: 'primary' | 'secondary', updatedAt: Date): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE contacts
+        SET linkedId = ?, linkPrecedence = ?, updatedAt = ?
+        WHERE id = ?
+      `;
+
+      const values = [
+        linkedId,
+        linkedPreference,
+        updatedAt.toISOString(),
+        id,
+      ];
+
+      this.db.run(query, values, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
         }
       });
     });

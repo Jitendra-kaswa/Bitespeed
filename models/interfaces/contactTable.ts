@@ -3,6 +3,6 @@ import { ContactAttributes } from './contactTableAttributes';
 export interface IContactModel {
     createTable(): Promise<void>;
     createContact(contact: ContactAttributes): Promise<number>;
-    findOneContactByEmailOrPhoneNumber(email: string, phoneNumber: string): Promise<ContactAttributes | null>;
+    findContactByEmailOrPhoneNumber(email: string, phoneNumber: string): Promise<ContactAttributes[]>;
     findAllContactsByLinkedId(linkedId: number): Promise<ContactAttributes[]>;
 }
