@@ -3,7 +3,7 @@ import { ContactAttributes } from './interfaces/contactTableAttributes';
 import { IContactModel } from './interfaces/contactTable';
 
 
-export class ContactModel implements IContactModel{
+export class ContactModel implements IContactModel {
   private db: Database;
 
   constructor(db: Database) {
@@ -62,27 +62,27 @@ export class ContactModel implements IContactModel{
     });
   }
 
-  findContactByEmailOrPhoneNumber(email: string| null, phoneNumber: string | null): Promise<ContactAttributes[]> {
+  findContactByEmailOrPhoneNumber(email: string | null, phoneNumber: string | null): Promise<ContactAttributes[]> {
     return new Promise((resolve, reject) => {
-        var query: string = "";
-        var queryParams: any[] = [];
-        if (phoneNumber == null) {
-          query = `SELECT * FROM contacts WHERE email = ?`;
-          queryParams = [email];
-        } else if (email == null) {
-          query = `SELECT * FROM contacts WHERE phoneNumber = ?`;
-          queryParams = [phoneNumber];
+      var query: string = "";
+      var queryParams: any[] = [];
+      if (phoneNumber == null) {
+        query = `SELECT * FROM contacts WHERE email = ?`;
+        queryParams = [email];
+      } else if (email == null) {
+        query = `SELECT * FROM contacts WHERE phoneNumber = ?`;
+        queryParams = [phoneNumber];
+      } else {
+        query = `SELECT * FROM contacts WHERE email = ? OR phoneNumber = ?`;
+        queryParams = [email, phoneNumber];
+      }
+      this.db.all(query, queryParams, (err, row) => {
+        if (err) {
+          reject(err);
         } else {
-          query = `SELECT * FROM contacts WHERE email = ? OR phoneNumber = ?`;
-          queryParams = [email, phoneNumber];
+          resolve(row != undefined ? (row as ContactAttributes[]) : []);
         }
-        this.db.all(query, queryParams, (err, row) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(row !=undefined ? (row as ContactAttributes[]) : []);
-          }
-        });
+      });
     });
   }
 
@@ -90,11 +90,11 @@ export class ContactModel implements IContactModel{
     return new Promise((resolve, reject) => {
       const query = ` SELECT * FROM contacts WHERE linkedId = ? OR id = ?`;
 
-      this.db.all(query, [linkedId,linkedId], (err, rows) => {
+      this.db.all(query, [linkedId, linkedId], (err, rows) => {
         if (err) {
           reject(err);
         } else {
-          resolve(rows ? rows as ContactAttributes[]: []);
+          resolve(rows ? rows as ContactAttributes[] : []);
         }
       });
     });

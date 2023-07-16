@@ -1,15 +1,17 @@
-import express,{Request, Response} from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import contactRouter from './routers/contactRouters';
-import { Database } from 'sqlite3';
-import { ContactModel } from './models/contact';
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middlewares
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors());
+
+// Routing
 app.use('/', contactRouter);
 
 //  Start the server
